@@ -7,9 +7,7 @@ from flask_migrate import Migrate
 from scr.db import db
 
 # Base do SQLAlchemy
-class Base(DeclarativeBase):
-    pass
-
+Base = db.Model
 
 
 # Modelo: User
@@ -24,6 +22,8 @@ class User(Base):
     # Relacionamentos
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="author")
     created_rooms: Mapped[List["Room"]] = relationship("Room", back_populates="creator")
+    room_associations: Mapped[List["RoomUserAssociation"]] = relationship("RoomUserAssociation", back_populates="user")
+
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
@@ -38,6 +38,8 @@ class Room(Base):
 
     # Relacionamento
     creator: Mapped["User"] = relationship("User", back_populates="created_rooms")
+    user_associations: Mapped[List["RoomUserAssociation"]] = relationship("RoomUserAssociation", back_populates="room")
+
 
     def __repr__(self) -> str:
         return f"<Room {self.name}>"
@@ -59,3 +61,14 @@ class Message(Base):
 
     def __repr__(self) -> str:
         return f"<Message {self.message[:20]}...>"
+    
+class RoomUserAssociation(Base):
+    __tablename__ = "room_user_association"
+
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"), nullable=False)
+    room_id: Mapped[int] = mapped_column(sa.ForeignKey("room.id"), nullable=False)
+    status: Mapped[str] = mapped_column(sa.String(20), default="active")
+
+    user: Mapped["User"] = relationship("User", back_populates="room_associations")
+    room: Mapped["Room"] = relationship("Room", back_populates="user_associations")

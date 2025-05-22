@@ -1,25 +1,63 @@
-from flask import Blueprint, request
+
+from flask import Blueprint, jsonify, request
 from sqlalchemy import inspect
 
 from scr.controllers.models.models import User
 from scr.db import db
 from http import HTTPStatus
-
+from werkzeug.security import generate_password_hash
 
 # lovalhost:5000/users/
-app = Blueprint('user', __name__, url_prefix='/users')
+app = Blueprint('users', __name__, url_prefix='/users')
 
 GET =  "GET"
 POST = "POST"
 PATCH = "PATCH"
 PUT = "PUT"
 
-
 def _create_user():
     data = request.json
-    user = User(username=data["username"])
-    db.session.add(user )
-    db.session.commit()
+    if not data.get("username") or not data.get("email") or not data.get("password"):
+        return {"error": "Missing required fields"}, HTTPStatus.BAD_REQUEST
+    
+    # verifica se o user e email já existem no db, se sim retornam um status code negativo
+    existing_user = User.query.filter_by(username=data["username"]).first()
+    if existing_user:
+        return {"error": "User already exists"}, HTTPStatus.BAD_REQUEST
+    
+    existing_email = User.query.filter_by(email=data["email"]).first()
+    if existing_email:
+        return {"error": "Email already exists"}, HTTPStatus.BAD_REQUEST
+
+    hashed_password = generate_password_hash(data["password"])
+
+    user = User(
+        username=data["username"],
+        email=data["email"],
+        password_with_hash=hashed_password
+    )
+    # db.session.add(user)
+    # db.session.commit()
+    
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    # ✅ RESPOSTA explícita ao final:
+    return {
+        "message": "User created successfully",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        }
+    }, HTTPStatus.CREATED
+
+
+
     
 def _list_users():
     query = db.select(User)
@@ -30,12 +68,16 @@ def _list_users():
     {
         "id": user.id,
         "username": user.username,
+        "email": user.email,
+        "hashed_password": user.password_with_hash
     }
     for user in users
     
 ]
-    
-    
+
+
+
+
 
 @app.route('/', methods=[GET, POST])
 def handler_user():
@@ -53,6 +95,8 @@ def get_user(user_id):
             
             "id": user.id,
             "username": user.username,
+            "email": user.email,
+            "hashed_password": user.password_with_hash
         }
         
 @app.route('/<int:user_id>', methods=["PATCH"])
