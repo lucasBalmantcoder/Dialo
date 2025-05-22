@@ -20,14 +20,16 @@ def _create_user():
     if not data.get("username") or not data.get("email") or not data.get("password"):
         return {"error": "Missing required fields"}, HTTPStatus.BAD_REQUEST
     
-    # verifica se o user e email já existem no db, se sim retornam um status code negativo
-    existing_user = User.query.filter_by(username=data["username"]).first()
-    if existing_user:
-        return {"error": "User already exists"}, HTTPStatus.BAD_REQUEST
+    errors = {}
     
-    existing_email = User.query.filter_by(email=data["email"]).first()
-    if existing_email:
-        return {"error": "Email already exists"}, HTTPStatus.BAD_REQUEST
+    if User.query.filter_by(username=data["username"]).first():
+        errors["username"] = "Username already exists"
+    
+    if User.query.filter_by(email=data["email"]).first():
+        errors["email"] = "Email already exists"
+    
+    if errors:
+        return {"errors": errors}, HTTPStatus.BAD_REQUEST
 
     hashed_password = generate_password_hash(data["password"])
 
@@ -82,7 +84,7 @@ def _list_users():
 @app.route('/', methods=[GET, POST])
 def handler_user():
     if request.method == POST:
-        _create_user()
+        return _create_user()
         return {'message': 'user created!'}, HTTPStatus.CREATED
     else:
         return {"users": _list_users()} 
@@ -121,7 +123,7 @@ def update_user(user_id):
         "username": user.username,
     }, HTTPStatus.OK
 
-@app.route('/<int:user_id>')
+@app.route('/<int:user_id>', methods=["DELETE"])
 def delete_user(user_id):
     user = db.get_or_404(User, user_id)
     db.session.delete(user)
