@@ -1,36 +1,33 @@
 from flask import Blueprint, request
-from controllers import user as user_controller  # Evita conflito com variável 'user'
 from http import HTTPStatus
+from flask_jwt_extended import create_access_token
+from werkzeug.security import check_password_hash
+
+from scr.controllers.models.models import User
 
 app = Blueprint('auth', __name__, url_prefix='/auth')
 
-GET = "GET"
-POST = "POST"
-PATCH = "PATCH"
-PUT = "PUT"
-
-@app.route('/login', methods=[POST])
+@app.route('/login', methods=["POST"])
 def _login():
     data = request.json
 
-    if not data:
-        return {"error": "Missing required fields"}, HTTPStatus.BAD_REQUEST
+    if not data or not data.get("username") or not data.get("password"):
+        return {"error": "Missing username or password"}, HTTPStatus.BAD_REQUEST
 
-    username = data.get("username")
-    password = data.get("password")
+    username = data["username"]
+    password = data["password"]
 
-    if not username or not password:
-        return {"error": "Missing required fields"}, HTTPStatus.BAD_REQUEST
+    user = User.query.filter_by(username=username).first()
+    if not user or not check_password_hash(user.password_with_hash, password):
+        return {"error": "Invalid username or password"}, HTTPStatus.UNAUTHORIZED
 
-    found_user = user_controller._get_user_by_username(username)
-    if not found_user:
-        return {"error": "User not found"}, HTTPStatus.NOT_FOUND
-
-    if not found_user.check_password(password):
-        return {"error": "Invalid password"}, HTTPStatus.UNAUTHORIZED
+    access_token = create_access_token(identity=user.id)
 
     return {
-        "id": found_user.id,
-        "username": found_user.username,
-        "email": found_user.email,
+        "access_token": access_token,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        }
     }, HTTPStatus.OK

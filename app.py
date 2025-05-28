@@ -1,9 +1,26 @@
 import os
-from flask import Flask, current_app
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 import click
-from scr.db import db
+from flask import Flask, current_app, request
+from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager, verify_jwt_in_request
+
+# Implementação de envio de e-mails
+from flask_mail import Mail, Message
+
+from scr.db import db  # Certifique-se de que esse caminho está correto
+
+from flask_cors import CORS
+
+# Proteção automática de rotasdef protect_all_routes(bp):
+def protect_all_routes(bp):
+    @bp.before_request
+    def before_request():
+        # Permitir POST em /users (criação de usuário) sem autenticação
+        if request.endpoint == 'users.handler_user' and request.method == 'POST':
+            return  # não exige token
+
+        verify_jwt_in_request()
+
 
 migrate = Migrate()
 
@@ -19,7 +36,16 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY="dev",
         SQLALCHEMY_DATABASE_URI="sqlite:///db.sqlite",
+        JWT_SECRET_KEY="sua_chave_secreta_segura",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        
+        # Configurações do Flask-Mail
+        MAIL_SERVER='smtp.gmail.com',
+        MAIL_PORT=587,
+        MAIL_USE_TLS=True,
+        MAIL_USERNAME=os.getenv("MAIL_USERNAME"),  # seu_email@gmail.com
+        MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),  # senha de app do Gmail
+        MAIL_DEFAULT_SENDER=os.getenv("MAIL_DEFAULT_SENDER", os.getenv("MAIL_USERNAME"))
     )
 
     if test_config is None:
@@ -31,13 +57,31 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+    
+    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+
+
 
     app.cli.add_command(init_db_command)
 
     db.init_app(app)
     migrate.init_app(app, db)
+    jwt = JWTManager(app)
 
+    # Rota raiz
+    @app.route("/")
+    def index():
+        return "API Flask está funcionando!"
+
+    # Importa Blueprints
     from scr.controllers.user import app as user_blueprint
+    from scr.controllers.auth import app as auth_blueprint
+
+    # Protege rotas do blueprint de usuário
+    protect_all_routes(user_blueprint)
+
+    # Registra Blueprints
+    app.register_blueprint(auth_blueprint)
     app.register_blueprint(user_blueprint)
 
     return app

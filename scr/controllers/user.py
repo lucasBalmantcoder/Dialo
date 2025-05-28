@@ -1,5 +1,6 @@
 
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from sqlalchemy import inspect
 
 from scr.controllers.models.models import User
@@ -91,6 +92,7 @@ def handler_user():
     
     
 @app.route('/<int:user_id>')
+@jwt_required()
 def get_user(user_id):
     user = db.get_or_404(User, user_id)
     return {
@@ -102,6 +104,7 @@ def get_user(user_id):
         }
         
 @app.route('/<int:user_id>', methods=["PATCH"])
+@jwt_required()
 def update_user(user_id):
     user = db.get_or_404(User, user_id) 
     data = request.json
@@ -124,6 +127,7 @@ def update_user(user_id):
     }, HTTPStatus.OK
 
 @app.route('/<int:user_id>', methods=["DELETE"])
+@jwt_required()
 def delete_user(user_id):
     user = db.get_or_404(User, user_id)
     db.session.delete(user)
