@@ -98,7 +98,8 @@ def forgot_password():
 
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     token = serializer.dumps(email, salt='password-reset-salt')
-    reset_url = url_for('auth.reset_password', token=token, _external=True)
+    reset_url = f"http://localhost:5173/reset-password/{token}"
+
 
     msg = Message(
         subject="Recuperação de senha",
@@ -135,6 +136,6 @@ def reset_password(token):
     return {"message": "Password has been reset successfully"}, HTTPStatus.OK
 
 
-@auth.route('/reset-password/<token>', methods=['GET'])
-def reset_password_form(token):
-    return {"message": "Página de redefinição de senha pronta para receber POST"}
+# @auth.route('/reset-password/<token>', methods=['GET'])
+# def reset_password_form(token):
+#     return {"message": "Página de redefinição de senha pronta para receber POST"}

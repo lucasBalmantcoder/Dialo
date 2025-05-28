@@ -48,7 +48,9 @@ def _create_user():
     }
     token = generate_confirmation_token(payload)
 
-    confirm_url = f"http://localhost:5000/auth/confirm-email/{token}"
+    # Mudar URL para frontend React
+    confirm_url = f"http://localhost:5173/confirm-email/{token}"
+    
     msg = Message(
         subject="Confirme seu e-mail",
         recipients=[data["email"]],
