@@ -25,6 +25,8 @@ def protect_all_routes(bp):
         # Permitir POST em /users (criação de usuário) sem autenticação
         if request.endpoint == 'users.handler_user' and request.method == 'POST':
             return  # não exige token
+        if request.endpoint == 'users' == 'GET':
+            return
 
         verify_jwt_in_request()
 
@@ -46,7 +48,7 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(
-        SECRET_KEY="dev",
+        SECRET_KEY=os.getenv("SECRET_KEY", "fallback_secreta"),
         SQLALCHEMY_DATABASE_URI="sqlite:///db.sqlite",
         JWT_SECRET_KEY="sua_chave_secreta_segura",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
@@ -58,6 +60,11 @@ def create_app(test_config=None):
         MAIL_USERNAME=os.getenv("MAIL_USERNAME"),  # seu_email@gmail.com
         MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),  # senha de app do Gmail
         MAIL_DEFAULT_SENDER=os.getenv("MAIL_DEFAULT_SENDER", os.getenv("MAIL_USERNAME"))
+        
+  
+
+     
+
     )
 
     if test_config is None:
@@ -88,14 +95,20 @@ def create_app(test_config=None):
         return "API Flask está funcionando!"
 
     # Importa Blueprints
-    from scr.controllers.user import app as user_blueprint
-    from scr.controllers.auth import app as auth_blueprint
+    from scr.controllers.user import users as user_blueprint
+    from scr.controllers.auth import  auth as auth_blueprint
 
     # Protege rotas do blueprint de usuário
-    protect_all_routes(user_blueprint)
+    # protect_all_routes(user_blueprint)
 
     # Registra Blueprints
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(user_blueprint)
+    
+    app.debug = True
+    
+    print("MAIL_USERNAME:", repr(app.config['MAIL_USERNAME']))
+    print("MAIL_PASSWORD:", repr(app.config['MAIL_PASSWORD']))
+
 
     return app
