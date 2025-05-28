@@ -8,6 +8,8 @@ from scr.db import db
 from http import HTTPStatus
 from werkzeug.security import generate_password_hash
 
+from scr.token_utils import generate_confirmation_token
+
 # lovalhost:5000/users/
 app = Blueprint('users', __name__, url_prefix='/users')
 
@@ -16,49 +18,48 @@ POST = "POST"
 PATCH = "PATCH"
 PUT = "PUT"
 
-def _create_user():
-    data = request.json
-    if not data.get("username") or not data.get("email") or not data.get("password"):
-        return {"error": "Missing required fields"}, HTTPStatus.BAD_REQUEST
+# def _create_user():
+#     data = request.json
+#     if not data.get("username") or not data.get("email") or not data.get("password"):
+#         return {"error": "Missing required fields"}, HTTPStatus.BAD_REQUEST
     
-    errors = {}
+#     errors = {}
     
-    if User.query.filter_by(username=data["username"]).first():
-        errors["username"] = "Username already exists"
+#     if User.query.filter_by(username=data["username"]).first():
+#         errors["username"] = "Username already exists"
     
-    if User.query.filter_by(email=data["email"]).first():
-        errors["email"] = "Email already exists"
+#     if User.query.filter_by(email=data["email"]).first():
+#         errors["email"] = "Email already exists"
     
-    if errors:
-        return {"errors": errors}, HTTPStatus.BAD_REQUEST
+#     if errors:
+#         return {"errors": errors}, HTTPStatus.BAD_REQUEST
 
-    hashed_password = generate_password_hash(data["password"])
+#     hashed_password = generate_password_hash(data["password"])
 
-    user = User(
-        username=data["username"],
-        email=data["email"],
-        password_with_hash=hashed_password
-    )
-    # db.session.add(user)
-    # db.session.commit()
+#     user = User(
+#         username=data["username"],
+#         email=data["email"],
+#         password_with_hash=hashed_password
+#     )
+#     # db.session.add(user)
+#     # db.session.commit()
     
-    try:
-        db.session.add(user)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        return {"error": str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
+#     try:
+#         db.session.add(user)
+#         db.session.commit()
+#     except Exception as e:
+#         db.session.rollback()
+#         return {"error": str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
 
-    # ✅ RESPOSTA explícita ao final:
-    return {
-        "message": "User created successfully",
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email
-        }
-    }, HTTPStatus.CREATED
-
+#     # ✅ RESPOSTA explícita ao final:
+#     return {
+#         "message": "User created successfully",
+#         "user": {
+#             "id": user.id,
+#             "username": user.username,
+#             "email": user.email
+#         }
+#     }, HTTPStatus.CREATED
 
 
     

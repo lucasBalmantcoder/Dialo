@@ -1,3 +1,10 @@
+# Importação do dotenv
+from dotenv import load_dotenv
+load_dotenv()
+
+
+
+
 import os
 import click
 from flask import Flask, current_app, request
@@ -29,8 +36,13 @@ def init_db_command():
     with current_app.app_context():
         db.create_all()
     click.echo("Initialized the database")
+    
+mail = Mail()
+
 
 def create_app(test_config=None):
+ 
+    
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(
@@ -66,6 +78,8 @@ def create_app(test_config=None):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
+    
     jwt = JWTManager(app)
 
     # Rota raiz

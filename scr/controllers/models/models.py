@@ -17,6 +17,9 @@ class User(Base):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
     username: Mapped[str] = mapped_column(sa.String(100), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(sa.String(100), unique=True, nullable=False)
+    
+    is_confirmed = mapped_column(sa.Boolean, default=False)
+    
     password_with_hash: Mapped[str] = mapped_column(sa.String(100), nullable=False)
 
     # Relacionamentos
