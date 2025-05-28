@@ -46,6 +46,7 @@ def create_app(test_config=None):
  
     
     app = Flask(__name__, instance_relative_config=True)
+    app.url_map.strict_slashes = False
 
     app.config.from_mapping(
         SECRET_KEY=os.getenv("SECRET_KEY", "fallback_secreta"),
