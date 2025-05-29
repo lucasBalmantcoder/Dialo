@@ -2,9 +2,6 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-
-
-
 import os
 import click
 from flask import Flask, current_app, request
@@ -30,7 +27,6 @@ def protect_all_routes(bp):
 
         verify_jwt_in_request()
 
-
 migrate = Migrate()
 
 @click.command("init-db")
@@ -41,10 +37,8 @@ def init_db_command():
     
 mail = Mail()
 
-
 def create_app(test_config=None):
- 
-    
+     
     app = Flask(__name__, instance_relative_config=True)
     app.url_map.strict_slashes = False
 
@@ -61,11 +55,6 @@ def create_app(test_config=None):
         MAIL_USERNAME=os.getenv("MAIL_USERNAME"),  # seu_email@gmail.com
         MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),  # senha de app do Gmail
         MAIL_DEFAULT_SENDER=os.getenv("MAIL_DEFAULT_SENDER", os.getenv("MAIL_USERNAME"))
-        
-  
-
-     
-
     )
 
     if test_config is None:
@@ -79,8 +68,6 @@ def create_app(test_config=None):
         pass
     
     CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
-
-
 
     app.cli.add_command(init_db_command)
 
@@ -110,6 +97,5 @@ def create_app(test_config=None):
     
     print("MAIL_USERNAME:", repr(app.config['MAIL_USERNAME']))
     print("MAIL_PASSWORD:", repr(app.config['MAIL_PASSWORD']))
-
 
     return app
