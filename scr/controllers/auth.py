@@ -32,7 +32,7 @@ def login():
     if not user.is_confirmed:
         return {"error": "Email not confirmed"}, HTTPStatus.UNAUTHORIZED
 
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
 
     return {
         "access_token": access_token,

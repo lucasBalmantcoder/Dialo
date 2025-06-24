@@ -85,6 +85,7 @@ def create_app(test_config=None):
     # Importa Blueprints
     from scr.controllers.user import users as user_blueprint
     from scr.controllers.auth import  auth as auth_blueprint
+    from scr.controllers.admin import admin as admin_blueprint
 
     # Protege rotas do blueprint de usuário
     # protect_all_routes(user_blueprint)
@@ -92,10 +93,11 @@ def create_app(test_config=None):
     # Registra Blueprints
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(user_blueprint)
+    app.register_blueprint(admin_blueprint)
     
     app.debug = True
     
-    print("MAIL_USERNAME:", repr(app.config['MAIL_USERNAME']))
-    print("MAIL_PASSWORD:", repr(app.config['MAIL_PASSWORD']))
+    # print("MAIL_USERNAME:", repr(app.config['MAIL_USERNAME']))
+    # print("MAIL_PASSWORD:", repr(app.config['MAIL_PASSWORD']))
 
     return app
