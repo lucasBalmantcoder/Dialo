@@ -49,3 +49,16 @@ Esta é uma API de autenticação e gerenciamento de usuários desenvolvida com 
     │   ├── db.cpython-310.pyc
     │   └── token_utils.cpython-310.pyc
     └── token_utils.py
+
+
+## Implementações de segurança novas
+
+* Controle de acesso.
+* * o usuário tem apenas 3 chances de acessar o sistema, após ele ficará bloqueado.
+* Foi criado uma nova rota de acesso para o login de Administradores.
+* * No momento a criação de admin, deve ser feita via código direto no sistema.
+* * O arquivo se chama : creat_admin.py, nele o administrador deve inserir as informações de admin.
+* Todas as rotas estão protegidas com JWT.
+* O sistema conta com uma atualizalção de auditoria, onde todas as ações de uso, serão registradas no banco de dados.
+
+    
