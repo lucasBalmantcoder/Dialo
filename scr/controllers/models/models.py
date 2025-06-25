@@ -1,17 +1,15 @@
 from datetime import datetime
 from typing import List
 import sqlalchemy as sa
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import  Mapped, mapped_column, relationship
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from scr.db import db
 
 from sqlalchemy import Boolean, DateTime
 
-
 # Base do SQLAlchemy
 Base = db.Model
-
 
 # Modelo: User
 class User(Base):
@@ -21,7 +19,6 @@ class User(Base):
     username: Mapped[str] = mapped_column(sa.String(100), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(sa.String(100), unique=True, nullable=False)
     
-    
     # Implementação de soft delete na app Dialo
     
     deleted_at = db.Column(db.DateTime, nullable=True, default=None)
@@ -29,7 +26,11 @@ class User(Base):
     is_confirmed = mapped_column(sa.Boolean, default=False)
     
     password_with_hash: Mapped[str] = mapped_column(sa.String(100), nullable=False)
-
+    
+    # limitar tentativas de login
+    login_attempts = db.Column(db.Integer, default=0)
+    
+    is_blocked = db.Column(db.Boolean, default=False)
 
     # Implementação de admin
     is_admin = db.Column(Boolean, default=False, nullable=False)
@@ -37,7 +38,6 @@ class User(Base):
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="author")
     created_rooms: Mapped[List["Room"]] = relationship("Room", back_populates="creator")
     room_associations: Mapped[List["RoomUserAssociation"]] = relationship("RoomUserAssociation", back_populates="user")
-
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
@@ -86,7 +86,6 @@ class RoomUserAssociation(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="room_associations")
     room: Mapped["Room"] = relationship("Room", back_populates="user_associations")
-    
     
 class AuditLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -7,7 +7,7 @@ from scr.db import db
 from scr.controllers.models.models import User
 from flask_mail import Message
 from app import mail
-import re
+
 
 from scr.token_utils import confirm_token
 
@@ -26,11 +26,25 @@ def login():
         (User.username == login_input) | (User.email == login_input)
     ).first()
 
-    if not user or not check_password_hash(user.password_with_hash, password):
+    if not user:
+        return {"error": "Invalid login or password"}, HTTPStatus.UNAUTHORIZED
+
+    if user.is_blocked:
+        return {"error": "Account is blocked. Please recover your account."}, HTTPStatus.FORBIDDEN
+
+    if not check_password_hash(user.password_with_hash, password):
+        user.login_attempts += 1
+        if user.login_attempts >= 3:
+            user.is_blocked = True
+        db.session.commit()
         return {"error": "Invalid login or password"}, HTTPStatus.UNAUTHORIZED
 
     if not user.is_confirmed:
         return {"error": "Email not confirmed"}, HTTPStatus.UNAUTHORIZED
+
+    # Reset attempts on successful login
+    user.login_attempts = 0
+    db.session.commit()
 
     access_token = create_access_token(identity=str(user.id))
 
@@ -42,6 +56,7 @@ def login():
             "email": user.email
         }
     }, HTTPStatus.OK
+
 
 
 @auth.route('/confirm-email/<path:token>')
@@ -136,6 +151,4 @@ def reset_password(token):
     return {"message": "Password has been reset successfully"}, HTTPStatus.OK
 
 
-# @auth.route('/reset-password/<token>', methods=['GET'])
-# def reset_password_form(token):
-#     return {"message": "Página de redefinição de senha pronta para receber POST"}
+

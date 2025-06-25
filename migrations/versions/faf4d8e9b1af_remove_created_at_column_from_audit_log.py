@@ -1,8 +1,10 @@
 """remove created_at column from audit_log
 
+
 Revision ID: faf4d8e9b1af
 Revises: 7d1e80a10bce
 Create Date: 2025-06-24 11:36:53.255053
+
 
 """
 from alembic import op
@@ -22,3 +24,5 @@ def upgrade():
 
 def downgrade():
     op.add_column('audit_log', sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')))
+
+
