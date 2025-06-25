@@ -7,9 +7,9 @@ app = create_app()
 
 with app.app_context():
     admin_user = User(
-        username="userzero",
-        email="userzero@dialo.com",
-        password_with_hash=generate_password_hash("senha_segura"),
+        username="test",
+        email="test@dialo.com",
+        password_with_hash=generate_password_hash("test"),
         is_confirmed=True,
         is_admin=True
     )
@@ -18,3 +18,5 @@ with app.app_context():
     db.session.commit()
 
     print("Usuário administrador criado com sucesso.")
+    
+    
