@@ -67,7 +67,8 @@ def create_app(test_config=None):
     except OSError:
         pass
     
-    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+    # CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+    CORS(app, supports_credentials=True)
 
     app.cli.add_command(init_db_command)
 

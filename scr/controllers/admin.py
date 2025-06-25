@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from scr.controllers.models.models import User
+from scr.controllers.models.models import AuditLog, User
 from scr.db import db
 from http import HTTPStatus
 from scr.controllers.decorador.decorators import admin_required
@@ -33,7 +33,8 @@ def admin_login():
     if not check_password_hash(user.password_with_hash, password):
         return {"error": "Invalid admin credentials"}, HTTPStatus.UNAUTHORIZED
 
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
+
 
     log_audit(user.id, "admin_login", f"Admin {user.username} logged in")
 
@@ -94,3 +95,37 @@ def delete_user(user_id):
     log_audit(current_user_id, "hard_delete_user", f"Admin deleted user {user.username} (id: {user.id})")
 
     return "", HTTPStatus.NO_CONTENT
+
+
+@admin.route('/audits', methods=[GET])
+@jwt_required()
+@admin_required
+def list_audit_logs():
+    """
+    Rota para listar todos os registros de auditoria.
+    Acesso restrito a administradores.
+    """
+    try:
+        # Consulta todos os registros de auditoria no banco de dados
+        audit_logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
+
+        # Formata os dados para a resposta JSON
+        result = [
+            {
+                "id": log.id,
+                "user_id": log.user_id,
+                "action": log.action,
+                "timestamp": log.timestamp.isoformat(), # Converte para formato ISO 8601
+                "details": log.details
+            }
+            for log in audit_logs
+        ]
+
+        # Registra a ação de auditoria (quem consultou os logs)
+        current_user_id = get_jwt_identity()
+        log_audit(current_user_id, "list_audit_logs", f"Admin listed {len(audit_logs)} audit logs")
+
+        return jsonify(result), HTTPStatus.OK
+    except Exception as e:
+        print(f"Erro ao listar auditorias: {e}")
+        return jsonify({"error": "Erro interno ao processar a requisição"}), HTTPStatus.INTERNAL_SERVER_ERROR
