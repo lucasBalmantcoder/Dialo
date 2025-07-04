@@ -8,7 +8,6 @@ from scr.controllers.models.models import User
 from flask_mail import Message
 from app import mail
 
-
 from scr.token_utils import confirm_token
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
@@ -57,8 +56,6 @@ def login():
         }
     }, HTTPStatus.OK
 
-
-
 @auth.route('/confirm-email/<path:token>')
 def confirm_email(token):
     try:
@@ -87,8 +84,6 @@ def confirm_email(token):
         traceback.print_exc()
         return {"error": f"Erro interno: {str(e)}"}, HTTPStatus.INTERNAL_SERVER_ERROR
 
-
-
 @auth.route('/teste-email')
 def teste_email():
     msg = Message(
@@ -98,7 +93,6 @@ def teste_email():
     )
     mail.send(msg)
     return "E-mail enviado com sucesso!"
-
 
 @auth.route('/forgot-password', methods=['POST'])
 def forgot_password():
@@ -124,7 +118,6 @@ def forgot_password():
     mail.send(msg)
 
     return {"message": "Se o email estiver cadastrado, um link de recuperação foi enviado."}, HTTPStatus.OK
-
 
 
 @auth.route('/reset-password/<token>', methods=['POST'])

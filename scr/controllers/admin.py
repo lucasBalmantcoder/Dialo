@@ -13,7 +13,6 @@ POST = "POST"
 PATCH = "PATCH"
 DELETE = "DELETE"
 
-
 @admin.route('/login', methods=[POST])
 def admin_login():
     data = request.json
@@ -35,15 +34,12 @@ def admin_login():
 
     access_token = create_access_token(identity=str(user.id))
 
-
     log_audit(user.id, "admin_login", f"Admin {user.username} logged in")
 
     return {"access_token": access_token}, HTTPStatus.OK
 
-
 @admin.route('/users', methods=[GET])
 @jwt_required()
-@admin_required
 def list_users():
     users = User.query.filter_by(deleted_at=None).all()
     result = [{
@@ -58,7 +54,6 @@ def list_users():
 
     return jsonify(result), HTTPStatus.OK
 
-
 @admin.route('/list_all_user_delete', methods=[GET])
 @jwt_required()
 @admin_required
@@ -67,7 +62,6 @@ def list_all_user_delete():
     log_audit(current_user_id, "list_all_user_delete", "Admin listed all deleted users")
 
     return listar_excluidos(), HTTPStatus.OK
-
 
 def listar_excluidos():
     query = db.select(User).where(User.deleted_at.is_not(None))
@@ -81,7 +75,6 @@ def listar_excluidos():
         }
         for user in users
     ]
-
 
 @admin.route('/<int:user_id>/hard-delete', methods=[DELETE])
 @jwt_required()
@@ -102,13 +95,12 @@ def delete_user(user_id):
 @admin_required
 def list_audit_logs():
     """
-    Rota para listar todos os registros de auditoria.
-    Acesso restrito a administradores.
+    Rota para listar todos os registros de auditoria. Acesso restrito a administradores.
     """
     try:
         # Consulta todos os registros de auditoria no banco de dados
         audit_logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
-
+        
         # Formata os dados para a resposta JSON
         result = [
             {

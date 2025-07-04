@@ -18,7 +18,6 @@ POST = "POST"
 PATCH = "PATCH"
 DELETE = "DELETE"
 
-
 def log_audit(action: str, user_id: int, target_user_id: int = None):
     """
     Exemplo simples de função para criar logs de auditoria.

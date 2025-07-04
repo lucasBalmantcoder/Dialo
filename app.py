@@ -87,6 +87,7 @@ def create_app(test_config=None):
     from scr.controllers.user import users as user_blueprint
     from scr.controllers.auth import  auth as auth_blueprint
     from scr.controllers.admin import admin as admin_blueprint
+    from scr.controllers.room import rooms as room_blueprint
 
     # Protege rotas do blueprint de usuário
     # protect_all_routes(user_blueprint)
@@ -95,6 +96,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(user_blueprint)
     app.register_blueprint(admin_blueprint)
+    app.register_blueprint(room_blueprint)
     
     app.debug = True
     
