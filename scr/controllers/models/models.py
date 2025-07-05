@@ -34,6 +34,11 @@ class User(Base):
 
     # Implementação de admin
     is_admin = db.Column(Boolean, default=False, nullable=False)
+    
+    # chave publica
+    
+    public_key: Mapped[str] = mapped_column(sa.Text, nullable=True)
+    
     # Relacionamentos
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="author")
     created_rooms: Mapped[List["Room"]] = relationship("Room", back_populates="creator")

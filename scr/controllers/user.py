@@ -157,3 +157,5 @@ def solicitar_exclusao(user_id):
     log_audit("soft_delete_user", user_id=current_user_id, target_user_id=user_id)
 
     return {"message": "Solicitação de exclusão registrada."}, HTTPStatus.OK
+
+

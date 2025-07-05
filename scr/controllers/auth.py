@@ -1,8 +1,9 @@
 from flask import Blueprint, request, url_for, current_app
 from http import HTTPStatus
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from werkzeug.security import check_password_hash, generate_password_hash
+from scr.controllers.utils.sanitize import sanitize_json_fields
 from scr.db import db
 from scr.controllers.models.models import User
 from flask_mail import Message
@@ -13,6 +14,7 @@ from scr.token_utils import confirm_token
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
 @auth.route('/login', methods=["POST"])
+@sanitize_json_fields
 def login():
     data = request.json
     if not data or not data.get("login") or not data.get("password"):
@@ -145,3 +147,41 @@ def reset_password(token):
 
 
 
+# NOVO ENDPOINT: Para o frontend enviar a chave pública
+@auth.route("/public_key", methods=["PATCH"])
+@jwt_required()
+def update_public_key():
+    user_id = get_jwt_identity()
+    user_id_int = int(user_id) # Garante que o ID é um inteiro
+
+    public_key_pem = request.json.get("public_key")
+
+    if not public_key_pem:
+        return {"error": "Chave pública é obrigatória."}, HTTPStatus.BAD_REQUEST
+
+    user = db.session.get(User, user_id_int)
+    if not user:
+        return {"error": "Usuário não encontrado."}, HTTPStatus.NOT_FOUND
+
+    user.public_key = public_key_pem
+    db.session.commit()
+
+    return {"message": "Chave pública atualizada com sucesso."}, HTTPStatus.OK
+
+# Exemplo de rota para obter detalhes do próprio usuário (incluindo public_key)
+@auth.route("/me", methods=["GET"])
+@jwt_required()
+def get_current_user_details():
+    user_id = get_jwt_identity()
+    user_id_int = int(user_id)
+
+    user = db.session.get(User, user_id_int)
+    if not user:
+        return {"error": "Usuário não encontrado."}, HTTPStatus.NOT_FOUND
+
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "public_key": user.public_key # Retorna a chave pública
+    }, HTTPStatus.OK

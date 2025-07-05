@@ -29,11 +29,11 @@ def protect_all_routes(bp):
 
 migrate = Migrate()
 
-@click.command("init-db")
-def init_db_command():
-    with current_app.app_context():
-        db.create_all()
-    click.echo("Initialized the database")
+# @click.command("init-db")
+# def init_db_command():
+#     with current_app.app_context():
+#         db.create_all()
+#     click.echo("Initialized the database")
     
 mail = Mail()
 
@@ -57,6 +57,15 @@ def create_app(test_config=None):
         MAIL_DEFAULT_SENDER=os.getenv("MAIL_DEFAULT_SENDER", os.getenv("MAIL_USERNAME"))
     )
 
+    # ADICIONE ESTAS LINHAS PARA DEBUG:
+    print(f"DEBUG: SQLALCHEMY_DATABASE_URI configurado para: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    # Para obter o caminho absoluto do DB, precisamos do app.instance_path
+    # e combinar com o nome do arquivo do DB
+    db_filename = app.config['SQLALCHEMY_DATABASE_URI'].split('///')[-1]
+    db_absolute_path = os.path.join(app.instance_path, db_filename)
+    print(f"DEBUG: Caminho absoluto esperado do DB: {db_absolute_path}")
+    print(f"DEBUG: app.instance_path é: {app.instance_path}")
+    
     if test_config is None:
         app.config.from_pyfile("config.py", silent=True)
     else:
@@ -70,7 +79,7 @@ def create_app(test_config=None):
     # CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
     CORS(app, supports_credentials=True)
 
-    app.cli.add_command(init_db_command)
+    # app.cli.add_command(init_db_command) # Esta linha deve estar comentada/removida
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -88,6 +97,7 @@ def create_app(test_config=None):
     from scr.controllers.auth import  auth as auth_blueprint
     from scr.controllers.admin import admin as admin_blueprint
     from scr.controllers.room import rooms as room_blueprint
+    from scr.controllers.message import messages as message_blueprint
 
     # Protege rotas do blueprint de usuário
     # protect_all_routes(user_blueprint)
@@ -97,6 +107,7 @@ def create_app(test_config=None):
     app.register_blueprint(user_blueprint)
     app.register_blueprint(admin_blueprint)
     app.register_blueprint(room_blueprint)
+    app.register_blueprint(message_blueprint)
     
     app.debug = True
     
