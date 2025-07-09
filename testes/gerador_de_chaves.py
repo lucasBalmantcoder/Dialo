@@ -37,7 +37,7 @@ def gerar_chaves():
 
 
 # ID do usuário que receberá a chave pública
-user_id = 3  # Altere conforme necessário
+user_id = 2  # Altere conforme necessário
 
 # Criar app context e salvar chave pública
 app = create_app()
